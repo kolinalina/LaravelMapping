@@ -82,3 +82,10 @@
     </div>
 </div>
 @endsection
+
+
+@push('script')
+    <script>
+        window.action = "submit"
+    </script>
+@endpush

@@ -3,7 +3,7 @@ if(navigator.geolocation){
         localCoord = position.coords;
         objLocalCoord = {
             lat: localCoord.latitude,
-            lang: localCoord.longitude
+            lng: localCoord.longitude
         }
 
       let platform = new H.service.Platform({
@@ -20,7 +20,7 @@ if(navigator.geolocation){
         defaultLayers.vector.normal.map,
         {
           zoom: 13,
-          center: { lng: 13.4, lat: 52.51 },
+          center: objLocalCoord,
           pixelRatio: window.devicePixelRatio || 1
         });
         
@@ -44,14 +44,17 @@ if(navigator.geolocation){
         let marker = new H.map.Marker(objLocalCoord, {
             volatility: true
         })
+
         marker.draggable = true;
         map.addObject(marker);
+
+        // lock the maps position
 
         map.addEventListener('dragstart', function(ev){
             let target = ev.target,
                 pointer = ev.currentPointer;
             if (target instanceof H.map.Marker){
-                let targetPosition = map.goToScreen(target.getGeometry());
+                let targetPosition = map.geoToScreen(target.getGeometry());
                 target['offset'] = new H.math.Point(
                     pointer.viewportX - targetPosition.x, pointer.viewportY - targetPosition.y
                 );
@@ -61,23 +64,44 @@ if(navigator.geolocation){
         }, false);
 
 
+        // listener for marker to move position
+
         map.addEventListener('drag', function(ev){
             let target = ev.target,
                 pointer = ev.currentPointer;
             if (target instanceof H.map.Marker){
-                // let targetPosition = map.goToScreen(target.getGeometry());
                target.setGeometry(
                    map.screenToGeo(
                        pointer.viewportX - target['offset'].x, pointer.viewportY - target['offset'].y
 
-                   ));
+                   )
+                );
                 
             }
 
         }, false);
-     }
 
-    })
+        // re-enable the behavior draggable
+        map.addEventListener('dragend', function(ev){
+            let target = ev.target;
+            if(target instanceof H.map.Marker){
+                behavior.enable();
+                let resultCoord = map.screenToGeo(
+                    ev.currentPointer.viewportX,
+                    ev.currentPointer.viewportY
+                );
+                inputLat.value = resultCoord.lat;
+                inputLng.value = resultCoord.lng;
+            }
+        }, false);
+    }
+
+    if(window.action == "submit"){
+        addDragableMarker(map, behavior);
+    }
+
+  })
+
 }else{
         console.error("Geolocation is not support in your browser!");
 }
