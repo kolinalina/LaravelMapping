@@ -22,3 +22,4 @@ use Illuminate\Support\Facades\Route;
     Route::get('/home', 'HomeController@index')->name('home');
     
     Route::resource('space', 'SpaceController');
+    Route::get('/browse/space', 'SpaceController@browse');
